@@ -1,26 +1,44 @@
 @import "tailwindcss";
 
+@theme inline {
+  /* Brand colors */
+  --color-navy:       #0A1628;
+  --color-navy-light: #162338;
+  --color-navy-muted: #2A3A52;
+  --color-gold:       #C9A84C;
+  --color-gold-light: #DFC06A;
+  --color-gold-muted: #A8893C;
+
+  /* Neutrals */
+  --color-surface:    #F5F7FA;
+  --color-border:     #E2E8F0;
+  --color-text-primary:   #0A1628;
+  --color-text-secondary: #4A5568;
+  --color-text-muted:     #8A9BB0;
+
+  /* Fonts */
+  --font-sans:    var(--font-inter);
+  --font-display: var(--font-playfair);
+}
+
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0A1628;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter, system-ui, sans-serif);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Smooth scroll offset for fixed nav */
+[id] {
+  scroll-margin-top: 80px;
 }
