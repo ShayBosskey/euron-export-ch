@@ -55,6 +55,6 @@ export const whyUsSectionSchema = defineType({
   ],
   preview: {
     select: { title: "headline" },
-    prepare: ({ title }: { title: string }) => ({ title, subtitle: "Why Us Section" }),
+    prepare: (s) => ({ title: s.title as string, subtitle: "Why Us Section" }),
   },
 });

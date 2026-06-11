@@ -54,6 +54,6 @@ export const heroSectionSchema = defineType({
   ],
   preview: {
     select: { title: "headline" },
-    prepare: ({ title }: { title: string }) => ({ title, subtitle: "Hero Section" }),
+    prepare: (s) => ({ title: s.title as string, subtitle: "Hero Section" }),
   },
 });

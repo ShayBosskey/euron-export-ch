@@ -41,6 +41,6 @@ export const aboutSectionSchema = defineType({
   ],
   preview: {
     select: { title: "headline" },
-    prepare: ({ title }: { title: string }) => ({ title, subtitle: "About Section" }),
+    prepare: (s) => ({ title: s.title as string, subtitle: "About Section" }),
   },
 });

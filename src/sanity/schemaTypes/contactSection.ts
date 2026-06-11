@@ -27,6 +27,6 @@ export const contactSectionSchema = defineType({
   ],
   preview: {
     select: { title: "headline" },
-    prepare: ({ title }: { title: string }) => ({ title, subtitle: "Contact Section" }),
+    prepare: (s) => ({ title: s.title as string, subtitle: "Contact Section" }),
   },
 });
