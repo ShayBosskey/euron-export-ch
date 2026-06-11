@@ -8,8 +8,8 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 type FormState = "idle" | "loading" | "success" | "error";
 
 interface ContactSectionProps {
-  data: ContactSectionType;
-  settings: SiteSettings;
+  data: ContactSectionType | null;
+  settings: SiteSettings | null;
 }
 
 export function ContactSection({ data, settings }: ContactSectionProps) {
@@ -25,7 +25,7 @@ export function ContactSection({ data, settings }: ContactSectionProps) {
     const form = e.currentTarget;
     const formData = new FormData(form);
 
-    const endpoint = data.formspreeEndpoint
+    const endpoint = data?.formspreeEndpoint
       ? `https://formspree.io/f/${data.formspreeEndpoint}`
       : "/api/contact";
 
@@ -49,6 +49,9 @@ export function ContactSection({ data, settings }: ContactSectionProps) {
     }
   }
 
+  const headline = data?.headline ?? "Get in Touch";
+  const subheadline = data?.subheadline;
+
   return (
     <section
       id="contact"
@@ -59,10 +62,10 @@ export function ContactSection({ data, settings }: ContactSectionProps) {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
           {/* Left column */}
           <div>
-            <SectionHeading headline={data.headline} subheadline={data.subheadline} />
+            <SectionHeading headline={headline} subheadline={subheadline} />
 
             <div data-reveal className="mt-10 space-y-6">
-              {settings.email && (
+              {settings?.email && (
                 <div className="flex items-start gap-4">
                   <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-sm bg-[var(--color-navy)]/10 text-[var(--color-navy)]">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -77,7 +80,7 @@ export function ContactSection({ data, settings }: ContactSectionProps) {
                   </div>
                 </div>
               )}
-              {settings.phone && (
+              {settings?.phone && (
                 <div className="flex items-start gap-4">
                   <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-sm bg-[var(--color-navy)]/10 text-[var(--color-navy)]">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -92,7 +95,7 @@ export function ContactSection({ data, settings }: ContactSectionProps) {
                   </div>
                 </div>
               )}
-              {settings.address && (
+              {settings?.address && (
                 <div className="flex items-start gap-4">
                   <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-sm bg-[var(--color-navy)]/10 text-[var(--color-navy)]">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">

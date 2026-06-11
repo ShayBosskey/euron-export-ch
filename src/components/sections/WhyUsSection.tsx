@@ -19,11 +19,15 @@ function UspCard({ usp }: { usp: Usp }) {
 }
 
 interface WhyUsSectionProps {
-  data: WhyUsSectionType;
+  data: WhyUsSectionType | null;
 }
 
 export function WhyUsSection({ data }: WhyUsSectionProps) {
   const containerRef = useScrollReveal({ stagger: 0.15, y: 30 });
+
+  if (!data) return null;
+
+  const usps = data.usps ?? [];
 
   return (
     <section
@@ -39,11 +43,15 @@ export function WhyUsSection({ data }: WhyUsSectionProps) {
           light
         />
 
-        <div className="mt-20 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 divide-y sm:divide-y-0 sm:divide-x divide-white/10">
-          {data.usps.map((usp) => (
-            <UspCard key={usp._key} usp={usp} />
-          ))}
-        </div>
+        {usps.length > 0 ? (
+          <div className="mt-20 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 divide-y sm:divide-y-0 sm:divide-x divide-white/10">
+            {usps.map((usp) => (
+              <UspCard key={usp._key} usp={usp} />
+            ))}
+          </div>
+        ) : (
+          <p className="mt-12 text-center text-white/40">Content coming soon.</p>
+        )}
       </div>
     </section>
   );

@@ -7,22 +7,37 @@ import { urlFor } from "@/sanity/image";
 import { Button } from "@/components/ui/Button";
 
 interface HeroSectionProps {
-  data: HeroSectionType;
+  data: HeroSectionType | null;
 }
 
 export function HeroSection({ data }: HeroSectionProps) {
   const heroRef = useHeroAnimation();
+
+  if (!data) {
+    return (
+      <section className="relative min-h-screen flex items-center justify-center bg-[var(--color-navy)]">
+        <div className="text-center text-white/50 px-6">
+          <p className="font-display text-2xl font-bold mb-2">Hero section not yet configured.</p>
+          <p className="text-sm">Open <a href="/studio" className="underline text-[var(--color-gold)]">/studio</a> → Hero Section to add content.</p>
+        </div>
+      </section>
+    );
+  }
+
+  const bgUrl = data.backgroundImage
+    ? urlFor(data.backgroundImage).width(1920).height(1080).url()
+    : null;
 
   return (
     <section
       ref={heroRef as React.RefObject<HTMLElement>}
       className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[var(--color-navy)]"
     >
-      {/* Background image */}
-      {data.backgroundImage && (
+      {/* Background image — only rendered when the CMS field is populated */}
+      {bgUrl && (
         <Image
-          src={urlFor(data.backgroundImage).width(1920).height(1080).url()}
-          alt={data.backgroundImage.alt ?? ""}
+          src={bgUrl}
+          alt={data.backgroundImage?.alt ?? ""}
           fill
           priority
           className="object-cover object-center"
@@ -49,23 +64,25 @@ export function HeroSection({ data }: HeroSectionProps) {
           data-hero-headline
           className="font-display text-5xl md:text-7xl font-bold text-white leading-[1.1] mb-8"
         >
-          {data.headline}
+          {data.headline ?? "Your Gateway to Global Markets"}
         </h1>
 
-        <p
-          data-hero-sub
-          className="text-lg md:text-xl text-white/75 max-w-2xl mx-auto mb-12 leading-relaxed"
-        >
-          {data.subheadline}
-        </p>
+        {data.subheadline && (
+          <p
+            data-hero-sub
+            className="text-lg md:text-xl text-white/75 max-w-2xl mx-auto mb-12 leading-relaxed"
+          >
+            {data.subheadline}
+          </p>
+        )}
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button
-            href={data.ctaPrimaryHref}
+            href={data.ctaPrimaryHref ?? "#contact"}
             variant="primary"
             data-hero-cta=""
           >
-            {data.ctaPrimaryLabel}
+            {data.ctaPrimaryLabel ?? "Get in Touch"}
           </Button>
           {data.ctaSecondaryLabel && (
             <Button

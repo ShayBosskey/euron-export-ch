@@ -1,11 +1,12 @@
 import type { SiteSettings } from "@/types/sanity";
 
 interface FooterProps {
-  settings: SiteSettings;
+  settings: SiteSettings | null;
 }
 
 export function Footer({ settings }: FooterProps) {
   const year = new Date().getFullYear();
+  const siteName = settings?.siteName ?? "Euron Export";
 
   return (
     <footer className="bg-[var(--color-navy)] text-white/70 border-t border-white/10">
@@ -14,11 +15,11 @@ export function Footer({ settings }: FooterProps) {
           {/* Brand */}
           <div>
             <p className="font-display text-xl font-bold text-white mb-3">
-              {settings.siteName}
+              {siteName}
             </p>
-            <p className="text-sm leading-relaxed">
-              {settings.tagline}
-            </p>
+            {settings?.tagline && (
+              <p className="text-sm leading-relaxed">{settings.tagline}</p>
+            )}
           </div>
 
           {/* Navigation */}
@@ -46,7 +47,7 @@ export function Footer({ settings }: FooterProps) {
               Contact
             </p>
             <ul className="space-y-2 text-sm">
-              {settings.email && (
+              {settings?.email && (
                 <li>
                   <a
                     href={`mailto:${settings.email}`}
@@ -56,11 +57,11 @@ export function Footer({ settings }: FooterProps) {
                   </a>
                 </li>
               )}
-              {settings.phone && <li>{settings.phone}</li>}
-              {settings.address && (
+              {settings?.phone && <li>{settings.phone}</li>}
+              {settings?.address && (
                 <li className="whitespace-pre-line">{settings.address}</li>
               )}
-              {settings.linkedIn && (
+              {settings?.linkedIn && (
                 <li>
                   <a
                     href={settings.linkedIn}
@@ -72,13 +73,16 @@ export function Footer({ settings }: FooterProps) {
                   </a>
                 </li>
               )}
+              {!settings?.email && !settings?.phone && (
+                <li className="text-white/30 italic">Contact info coming soon.</li>
+              )}
             </ul>
           </div>
         </div>
 
         <div className="mt-12 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-white/40">
           <p>
-            &copy; {year} {settings.siteName}. All rights reserved.
+            &copy; {year} {siteName}. All rights reserved.
           </p>
           <p>
             Built in Switzerland &nbsp;·&nbsp;{" "}

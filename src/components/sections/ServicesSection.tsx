@@ -44,7 +44,7 @@ function ServiceCard({ service }: { service: Service }) {
       className="group p-8 bg-white rounded-sm border border-[var(--color-border)] hover:border-[var(--color-gold)] hover:shadow-lg transition-all duration-300"
     >
       <div className="mb-5 inline-flex items-center justify-center w-14 h-14 rounded-sm bg-[var(--color-navy)]/5 text-[var(--color-navy)] group-hover:bg-[var(--color-gold)] group-hover:text-[var(--color-navy)] transition-all duration-300">
-        {ICONS[service.icon] ?? ICONS.globe}
+        {(service.icon && ICONS[service.icon]) ?? ICONS.globe}
       </div>
       <h3 className="font-display text-xl font-bold text-[var(--color-navy)] mb-3">
         {service.title}
@@ -57,11 +57,15 @@ function ServiceCard({ service }: { service: Service }) {
 }
 
 interface ServicesSectionProps {
-  data: ServicesSectionType;
+  data: ServicesSectionType | null;
 }
 
 export function ServicesSection({ data }: ServicesSectionProps) {
   const containerRef = useScrollReveal({ stagger: 0.1 });
+
+  if (!data) return null;
+
+  const services = data.services ?? [];
 
   return (
     <section
@@ -76,11 +80,17 @@ export function ServicesSection({ data }: ServicesSectionProps) {
           centered
         />
 
-        <div className="mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {data.services.map((service) => (
-            <ServiceCard key={service._key} service={service} />
-          ))}
-        </div>
+        {services.length > 0 ? (
+          <div className="mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {services.map((service) => (
+              <ServiceCard key={service._key} service={service} />
+            ))}
+          </div>
+        ) : (
+          <p className="mt-12 text-center text-[var(--color-text-muted)]">
+            Services coming soon.
+          </p>
+        )}
       </div>
     </section>
   );

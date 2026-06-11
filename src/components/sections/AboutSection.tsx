@@ -8,11 +8,22 @@ import { urlFor } from "@/sanity/image";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 
 interface AboutSectionProps {
-  data: AboutSectionType;
+  data: AboutSectionType | null;
 }
 
 export function AboutSection({ data }: AboutSectionProps) {
   const containerRef = useScrollReveal({ y: 30, stagger: 0.15 });
+
+  if (!data) return null;
+
+  const imageUrl = data.image
+    ? urlFor(data.image).width(800).height(600).url()
+    : null;
+
+  const yearsActive =
+    data.foundedYear && data.foundedYear > 0
+      ? new Date().getFullYear() - data.foundedYear
+      : null;
 
   return (
     <section
@@ -26,20 +37,22 @@ export function AboutSection({ data }: AboutSectionProps) {
           <div>
             <SectionHeading headline={data.headline} />
 
-            <div
-              data-reveal
-              className="mt-8 prose prose-lg prose-slate max-w-none text-[var(--color-text-secondary)] [&_strong]:text-[var(--color-navy)] [&_a]:text-[var(--color-gold)]"
-            >
-              <PortableText value={data.body} />
-            </div>
+            {data.body?.length > 0 && (
+              <div
+                data-reveal
+                className="mt-8 prose prose-lg prose-slate max-w-none text-[var(--color-text-secondary)] [&_strong]:text-[var(--color-navy)] [&_a]:text-[var(--color-gold)]"
+              >
+                <PortableText value={data.body} />
+              </div>
+            )}
 
             {/* Stats */}
-            {(data.foundedYear || data.teamSize) && (
+            {(yearsActive !== null || data.teamSize) && (
               <div data-reveal className="mt-10 flex gap-12">
-                {data.foundedYear && (
+                {yearsActive !== null && (
                   <div>
                     <p className="font-display text-4xl font-bold text-[var(--color-navy)]">
-                      {new Date().getFullYear() - data.foundedYear}+
+                      {yearsActive}+
                     </p>
                     <p className="text-sm text-[var(--color-text-muted)] mt-1 tracking-wide">
                       Years of expertise
@@ -61,11 +74,11 @@ export function AboutSection({ data }: AboutSectionProps) {
           </div>
 
           {/* Image */}
-          {data.image && (
+          {imageUrl && (
             <div data-reveal className="relative rounded-sm overflow-hidden aspect-[4/3] shadow-2xl">
               <Image
-                src={urlFor(data.image).width(800).height(600).url()}
-                alt={data.image.alt ?? "About Euron Export"}
+                src={imageUrl}
+                alt={data.image?.alt ?? "About Euron Export"}
                 fill
                 className="object-cover"
                 sizes="(max-width: 1024px) 100vw, 50vw"

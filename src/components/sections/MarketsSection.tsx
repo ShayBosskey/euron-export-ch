@@ -31,11 +31,15 @@ function MarketCard({ market }: { market: Market }) {
 }
 
 interface MarketsSectionProps {
-  data: MarketsSectionType;
+  data: MarketsSectionType | null;
 }
 
 export function MarketsSection({ data }: MarketsSectionProps) {
   const containerRef = useScrollReveal({ stagger: 0.1, y: 30 });
+
+  if (!data) return null;
+
+  const markets = data.markets ?? [];
 
   return (
     <section
@@ -51,11 +55,15 @@ export function MarketsSection({ data }: MarketsSectionProps) {
           light
         />
 
-        <div className="mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {data.markets.map((market) => (
-            <MarketCard key={market._key} market={market} />
-          ))}
-        </div>
+        {markets.length > 0 ? (
+          <div className="mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {markets.map((market) => (
+              <MarketCard key={market._key} market={market} />
+            ))}
+          </div>
+        ) : (
+          <p className="mt-12 text-center text-white/40">Markets coming soon.</p>
+        )}
       </div>
     </section>
   );

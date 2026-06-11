@@ -13,6 +13,9 @@ import { ContactSection } from "@/components/sections/ContactSection";
 export const revalidate = 60;
 
 export default async function Home() {
+  // Fetch returns null if the Sanity project isn't configured yet.
+  // Each section also resolves to null when its document hasn't been created.
+  // Every component handles null gracefully — the page never crashes.
   const data = await client.fetch<HomePage>(homePageQuery).catch(() => null);
 
   if (!data) {
@@ -21,9 +24,11 @@ export default async function Home() {
         <div className="text-center max-w-lg px-6">
           <h1 className="font-display text-3xl font-bold mb-4">CMS Not Connected</h1>
           <p className="text-white/70 mb-8">
-            Copy <code className="text-[var(--color-gold)]">.env.local.example</code> to{" "}
-            <code className="text-[var(--color-gold)]">.env.local</code>, add your Sanity project
-            credentials, then restart with <code className="text-[var(--color-gold)]">npm run dev</code>.
+            Copy{" "}
+            <code className="text-[var(--color-gold)]">.env.local.example</code> to{" "}
+            <code className="text-[var(--color-gold)]">.env.local</code>, add your Sanity
+            credentials, then restart with{" "}
+            <code className="text-[var(--color-gold)]">npm run dev</code>.
           </p>
           <a
             href="/studio"
@@ -40,6 +45,7 @@ export default async function Home() {
     <>
       <Navbar siteName={data.settings?.siteName ?? "Euron Export"} />
       <main>
+        {/* Each section receives its document (or null) and handles the null state internally */}
         <HeroSection data={data.hero} />
         <AboutSection data={data.about} />
         <ServicesSection data={data.services} />

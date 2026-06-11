@@ -96,11 +96,11 @@ export interface ContactSection {
 }
 
 export interface HomePage {
-  hero: HeroSection;
-  about: AboutSection;
-  services: ServicesSection;
-  markets: MarketsSection;
-  whyUs: WhyUsSection;
-  contact: ContactSection;
-  settings: SiteSettings;
+  hero: HeroSection | null;
+  about: AboutSection | null;
+  services: ServicesSection | null;
+  markets: MarketsSection | null;
+  whyUs: WhyUsSection | null;
+  contact: ContactSection | null;
+  settings: SiteSettings | null;
 }
