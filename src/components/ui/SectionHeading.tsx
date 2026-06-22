@@ -1,4 +1,5 @@
 interface SectionHeadingProps {
+  eyebrow?: string;
   headline: string;
   subheadline?: string;
   centered?: boolean;
@@ -6,6 +7,7 @@ interface SectionHeadingProps {
 }
 
 export function SectionHeading({
+  eyebrow,
   headline,
   subheadline,
   centered = false,
@@ -13,28 +15,39 @@ export function SectionHeading({
 }: SectionHeadingProps) {
   return (
     <div
-      className={centered ? "text-center" : ""}
+      className={`mb-12 ${centered ? "text-center" : ""}`}
       data-reveal
     >
+      {eyebrow && (
+        <div
+          className={`inline-flex items-center gap-3 mb-4 text-[13px] font-bold tracking-[1.5px] uppercase ${
+            light ? "text-[var(--eu-on-dark-soft)]" : "text-[var(--eu-muted)]"
+          }`}
+        >
+          <span
+            className={`inline-block w-6 h-0.5 opacity-60 ${
+              light ? "bg-[var(--eu-on-dark)]" : "bg-[var(--eu-ink)]"
+            }`}
+          />
+          {eyebrow}
+        </div>
+      )}
       <h2
-        className={`font-display text-4xl md:text-5xl font-bold leading-tight mb-4 ${
-          light ? "text-white" : "text-[var(--color-navy)]"
+        className={`text-4xl md:text-5xl font-bold leading-tight mt-4 ${
+          light ? "text-[var(--eu-on-dark)]" : "text-[var(--eu-ink)]"
         }`}
       >
         {headline}
       </h2>
       {subheadline && (
         <p
-          className={`text-lg md:text-xl max-w-2xl ${centered ? "mx-auto" : ""} ${
-            light ? "text-[var(--color-text-muted)]" : "text-[var(--color-text-secondary)]"
+          className={`mt-4 text-lg leading-relaxed max-w-2xl ${centered ? "mx-auto" : ""} ${
+            light ? "text-[var(--eu-on-dark-soft)]" : "text-[var(--eu-muted)]"
           }`}
         >
           {subheadline}
         </p>
       )}
-      <div
-        className={`mt-4 h-1 w-16 rounded-full bg-[var(--color-gold)] ${centered ? "mx-auto" : ""}`}
-      />
     </div>
   );
 }
