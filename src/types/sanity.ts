@@ -43,7 +43,7 @@ export interface ServicesSection {
   _id: string;
   headline: string;
   subheadline?: string;
-  services: Service[];
+  services?: Service[];
 }
 
 export interface Market {
@@ -59,7 +59,7 @@ export interface MarketsSection {
   _id: string;
   headline: string;
   subheadline?: string;
-  markets: Market[];
+  markets?: Market[];
 }
 
 export interface Usp {
@@ -74,14 +74,14 @@ export interface WhyUsSection {
   _id: string;
   headline: string;
   subheadline?: string;
-  usps: Usp[];
+  usps?: Usp[];
 }
 
 export interface AboutSection {
   _type: "aboutSection";
   _id: string;
   headline: string;
-  body: PortableTextBlock[];
+  body?: PortableTextBlock[];
   image?: SanityImage;
   foundedYear?: number;
   teamSize?: string;

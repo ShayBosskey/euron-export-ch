@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { client } from "@/sanity/client";
 import { heroSectionQuery, siteSettingsQuery } from "@/sanity/queries";
 import type { HeroSection, SiteSettings } from "@/types/sanity";
@@ -7,6 +8,18 @@ import { HeroSection as HeroSectionComponent } from "@/components/sections/HeroS
 import { groq } from "next-sanity";
 
 export const revalidate = 60;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await client
+    .fetch<SiteSettings | null>(siteSettingsQuery)
+    .catch(() => null);
+  return {
+    title: settings?.siteName ?? "Euron Export",
+    description:
+      settings?.seoDescription ??
+      "Reifenrecycling, Sortierhof und Container-Export aus Oberdiessbach BE. Amtlich lizenziert, EU-konform.",
+  };
+}
 
 interface HomeData {
   hero: HeroSection | null;
