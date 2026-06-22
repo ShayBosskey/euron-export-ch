@@ -1,5 +1,6 @@
 "use client";
 
+import type React from "react";
 import type { MarketsSection as MarketsSectionType } from "@/types/sanity";
 import { useScrollReveal } from "@/lib/animations/useScrollReveal";
 

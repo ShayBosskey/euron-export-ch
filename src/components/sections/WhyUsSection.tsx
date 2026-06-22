@@ -1,5 +1,6 @@
 "use client";
 
+import type React from "react";
 import type { WhyUsSection as WhyUsSectionType } from "@/types/sanity";
 import { useScrollReveal } from "@/lib/animations/useScrollReveal";
 

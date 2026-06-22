@@ -1,5 +1,6 @@
 "use client";
 
+import type React from "react";
 import Image from "next/image";
 import { PortableText } from "@portabletext/react";
 import type { AboutSection as AboutSectionType } from "@/types/sanity";
@@ -50,7 +51,7 @@ export function AboutSection({ data }: AboutSectionProps) {
               {data.headline}
             </h2>
 
-            {data.body?.length > 0 && (
+            {data.body && data.body.length > 0 && (
               <div
                 data-reveal
                 className="mt-8 prose prose-lg max-w-none text-[var(--eu-body)] leading-relaxed [&_strong]:text-[var(--eu-ink)] [&_strong]:font-bold [&_a]:text-[var(--eu-recycle-green)] [&_a]:no-underline [&_a:hover]:underline"

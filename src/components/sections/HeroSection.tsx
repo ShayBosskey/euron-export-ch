@@ -1,5 +1,6 @@
 "use client";
 
+import type React from "react";
 import Image from "next/image";
 import type { HeroSection as HeroSectionType } from "@/types/sanity";
 import { useHeroAnimation } from "@/lib/animations/useHeroAnimation";
