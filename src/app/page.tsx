@@ -1,38 +1,43 @@
 import { client } from "@/sanity/client";
-import { homePageQuery } from "@/sanity/queries";
-import type { HomePage } from "@/types/sanity";
+import { heroSectionQuery, siteSettingsQuery } from "@/sanity/queries";
+import type { HeroSection, SiteSettings } from "@/types/sanity";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { HeroSection } from "@/components/sections/HeroSection";
-import { AboutSection } from "@/components/sections/AboutSection";
-import { ServicesSection } from "@/components/sections/ServicesSection";
-import { MarketsSection } from "@/components/sections/MarketsSection";
-import { WhyUsSection } from "@/components/sections/WhyUsSection";
-import { ContactSection } from "@/components/sections/ContactSection";
+import { HeroSection as HeroSectionComponent } from "@/components/sections/HeroSection";
+import { groq } from "next-sanity";
 
 export const revalidate = 60;
 
+interface HomeData {
+  hero: HeroSection | null;
+  settings: SiteSettings | null;
+}
+
+const homeQuery = groq`
+  {
+    "hero":     ${heroSectionQuery},
+    "settings": ${siteSettingsQuery},
+  }
+`;
+
 export default async function Home() {
-  // Fetch returns null if the Sanity project isn't configured yet.
-  // Each section also resolves to null when its document hasn't been created.
-  // Every component handles null gracefully — the page never crashes.
-  const data = await client.fetch<HomePage>(homePageQuery).catch(() => null);
+  const data = await client.fetch<HomeData>(homeQuery).catch(() => null);
 
   if (!data) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-[var(--color-navy)] text-white">
+      <main className="min-h-screen flex items-center justify-center bg-[var(--eu-canvas)]">
         <div className="text-center max-w-lg px-6">
-          <h1 className="font-display text-3xl font-bold mb-4">CMS Not Connected</h1>
-          <p className="text-white/70 mb-8">
+          <h1 className="text-3xl font-bold mb-4 text-[var(--eu-ink)]">CMS Not Connected</h1>
+          <p className="text-[var(--eu-muted)] mb-8">
             Copy{" "}
-            <code className="text-[var(--color-gold)]">.env.local.example</code> to{" "}
-            <code className="text-[var(--color-gold)]">.env.local</code>, add your Sanity
+            <code className="text-[var(--eu-recycle-green)]">.env.local.example</code> to{" "}
+            <code className="text-[var(--eu-recycle-green)]">.env.local</code>, add your Sanity
             credentials, then restart with{" "}
-            <code className="text-[var(--color-gold)]">npm run dev</code>.
+            <code className="text-[var(--eu-recycle-green)]">npm run dev</code>.
           </p>
           <a
             href="/studio"
-            className="inline-flex items-center px-6 py-3 bg-[var(--color-gold)] text-[var(--color-navy)] font-semibold rounded-sm hover:bg-[var(--color-gold-light)] transition-colors"
+            className="inline-flex items-center px-6 py-3 bg-[var(--eu-recycle-green)] text-white font-semibold hover:bg-[var(--eu-recycle-green-active)] transition-colors"
           >
             Open Studio →
           </a>
@@ -45,13 +50,7 @@ export default async function Home() {
     <>
       <Navbar siteName={data.settings?.siteName ?? "Euron Export"} />
       <main>
-        {/* Each section receives its document (or null) and handles the null state internally */}
-        <HeroSection data={data.hero} />
-        <AboutSection data={data.about} />
-        <ServicesSection data={data.services} />
-        <MarketsSection data={data.markets} />
-        <WhyUsSection data={data.whyUs} />
-        <ContactSection data={data.contact} settings={data.settings} />
+        <HeroSectionComponent data={data.hero} />
       </main>
       <Footer settings={data.settings} />
     </>
