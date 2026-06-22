@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
+import { groq } from "next-sanity";
+import { client } from "@/sanity/client";
+import { marketsSectionQuery, siteSettingsQuery } from "@/sanity/queries";
+import type { MarketsSection, SiteSettings } from "@/types/sanity";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { MarketsSection as MarketsSectionComponent } from "@/components/sections/MarketsSection";
+
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Märkte & Reifen kaufen — Euron Export",
@@ -8,25 +15,28 @@ export const metadata: Metadata = {
     "Sortierte Occasionsreifen ab Lager in Oberdiessbach BE. Einzel- und Bulk-Verkauf für Privatkunden, Händler und Exporteure in der EU.",
 };
 
-export default function MarketsPage() {
+interface MarketsPageData {
+  markets: MarketsSection | null;
+  settings: SiteSettings | null;
+}
+
+const marketsPageQuery = groq`
+  {
+    "markets":  ${marketsSectionQuery},
+    "settings": ${siteSettingsQuery},
+  }
+`;
+
+export default async function MarketsPage() {
+  const data = await client.fetch<MarketsPageData>(marketsPageQuery).catch(() => null);
+
   return (
     <>
-      <Navbar siteName="Euron Export" />
-      <main className="min-h-screen flex items-center justify-center bg-[var(--eu-canvas)]">
-        <div className="text-center px-6 max-w-lg">
-          <p className="text-[11px] tracking-[2px] uppercase font-bold text-[var(--eu-recycle-green)] mb-4">
-            Märkte
-          </p>
-          <h1 className="text-4xl font-bold text-[var(--eu-ink)] mb-4">
-            Reifen kaufen
-          </h1>
-          <p className="text-[var(--eu-muted)] leading-relaxed">
-            Dieser Bereich wird über das Sanity CMS verwaltet und im nächsten Sprint
-            mit Inhalten befüllt.
-          </p>
-        </div>
+      <Navbar siteName={data?.settings?.siteName ?? "Euron Export"} />
+      <main className="min-h-screen bg-[var(--eu-canvas)]">
+        <MarketsSectionComponent data={data?.markets ?? null} />
       </main>
-      <Footer settings={null} />
+      <Footer settings={data?.settings ?? null} />
     </>
   );
 }

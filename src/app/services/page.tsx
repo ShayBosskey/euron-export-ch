@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
+import { groq } from "next-sanity";
+import { client } from "@/sanity/client";
+import { servicesSectionQuery, siteSettingsQuery } from "@/sanity/queries";
+import type { ServicesSection, SiteSettings } from "@/types/sanity";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { ServicesSection as ServicesSectionComponent } from "@/components/sections/ServicesSection";
+
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Dienstleistungen — Euron Export",
@@ -8,25 +15,28 @@ export const metadata: Metadata = {
     "Unsere Leistungen: Altreifen-Abholung bei Garagen, Reifen-Sortierung und EU-konformer Recycling-Export. Lizenziert, amtlich anerkannt, kantonal genehmigt.",
 };
 
-export default function ServicesPage() {
+interface ServicesPageData {
+  services: ServicesSection | null;
+  settings: SiteSettings | null;
+}
+
+const servicesPageQuery = groq`
+  {
+    "services": ${servicesSectionQuery},
+    "settings": ${siteSettingsQuery},
+  }
+`;
+
+export default async function ServicesPage() {
+  const data = await client.fetch<ServicesPageData>(servicesPageQuery).catch(() => null);
+
   return (
     <>
-      <Navbar siteName="Euron Export" />
-      <main className="min-h-screen flex items-center justify-center bg-[var(--eu-canvas)]">
-        <div className="text-center px-6 max-w-lg">
-          <p className="text-[11px] tracking-[2px] uppercase font-bold text-[var(--eu-recycle-green)] mb-4">
-            Dienstleistungen
-          </p>
-          <h1 className="text-4xl font-bold text-[var(--eu-ink)] mb-4">
-            Garagen-Service & Abholung
-          </h1>
-          <p className="text-[var(--eu-muted)] leading-relaxed">
-            Dieser Bereich wird über das Sanity CMS verwaltet und im nächsten Sprint
-            mit Inhalten befüllt.
-          </p>
-        </div>
+      <Navbar siteName={data?.settings?.siteName ?? "Euron Export"} />
+      <main className="min-h-screen bg-[var(--eu-canvas)]">
+        <ServicesSectionComponent data={data?.services ?? null} />
       </main>
-      <Footer settings={null} />
+      <Footer settings={data?.settings ?? null} />
     </>
   );
 }

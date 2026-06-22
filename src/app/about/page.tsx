@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
+import { groq } from "next-sanity";
+import { client } from "@/sanity/client";
+import { aboutSectionQuery, siteSettingsQuery } from "@/sanity/queries";
+import type { AboutSection, SiteSettings } from "@/types/sanity";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { AboutSection as AboutSectionComponent } from "@/components/sections/AboutSection";
+
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Über uns — Euron Export",
@@ -8,25 +15,28 @@ export const metadata: Metadata = {
     "Erfahren Sie mehr über Euron Export — Ihr zuverlässiger Partner für Reifen-Recycling, Sortierung und EU-konformen Export aus Oberdiessbach BE.",
 };
 
-export default function AboutPage() {
+interface AboutPageData {
+  about: AboutSection | null;
+  settings: SiteSettings | null;
+}
+
+const aboutPageQuery = groq`
+  {
+    "about":    ${aboutSectionQuery},
+    "settings": ${siteSettingsQuery},
+  }
+`;
+
+export default async function AboutPage() {
+  const data = await client.fetch<AboutPageData>(aboutPageQuery).catch(() => null);
+
   return (
     <>
-      <Navbar siteName="Euron Export" />
-      <main className="min-h-screen flex items-center justify-center bg-[var(--eu-canvas)]">
-        <div className="text-center px-6 max-w-lg">
-          <p className="text-[11px] tracking-[2px] uppercase font-bold text-[var(--eu-recycle-green)] mb-4">
-            Über uns
-          </p>
-          <h1 className="text-4xl font-bold text-[var(--eu-ink)] mb-4">
-            Unser Unternehmen
-          </h1>
-          <p className="text-[var(--eu-muted)] leading-relaxed">
-            Dieser Bereich wird über das Sanity CMS verwaltet und im nächsten Sprint
-            mit Inhalten befüllt.
-          </p>
-        </div>
+      <Navbar siteName={data?.settings?.siteName ?? "Euron Export"} />
+      <main className="min-h-screen bg-[var(--eu-canvas)]">
+        <AboutSectionComponent data={data?.about ?? null} />
       </main>
-      <Footer settings={null} />
+      <Footer settings={data?.settings ?? null} />
     </>
   );
 }

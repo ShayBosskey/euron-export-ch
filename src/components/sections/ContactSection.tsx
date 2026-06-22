@@ -3,9 +3,14 @@
 import { useState, type FormEvent } from "react";
 import type { ContactSection as ContactSectionType, SiteSettings } from "@/types/sanity";
 import { useScrollReveal } from "@/lib/animations/useScrollReveal";
-import { SectionHeading } from "@/components/ui/SectionHeading";
 
 type FormState = "idle" | "loading" | "success" | "error";
+
+const BIZ_PHONE      = "+41 76 259 44 64";
+const BIZ_PHONE_HREF = "tel:+41762594464";
+const BIZ_EMAIL      = "info@euron-export.com";
+const BIZ_ADDRESS    = "Ziegelei 1\n3672 Oberdiessbach BE";
+const BIZ_HOURS      = "Mo–Fr 07:00–17:30 · Sa 08:00–12:00";
 
 interface ContactSectionProps {
   data: ContactSectionType | null;
@@ -24,7 +29,6 @@ export function ContactSection({ data, settings }: ContactSectionProps) {
 
     const form = e.currentTarget;
     const formData = new FormData(form);
-
     const endpoint = data?.formspreeEndpoint
       ? `https://formspree.io/f/${data.formspreeEndpoint}`
       : "/api/contact";
@@ -35,12 +39,10 @@ export function ContactSection({ data, settings }: ContactSectionProps) {
         headers: { Accept: "application/json" },
         body: formData,
       });
-
       if (!res.ok) {
         const json = await res.json().catch(() => ({}));
         throw new Error((json as { error?: string }).error ?? "Submission failed");
       }
-
       setState("success");
       form.reset();
     } catch (err) {
@@ -49,133 +51,123 @@ export function ContactSection({ data, settings }: ContactSectionProps) {
     }
   }
 
-  const headline = data?.headline ?? "Get in Touch";
-  const subheadline = data?.subheadline;
+  const phone   = settings?.phone   ?? BIZ_PHONE;
+  const email   = settings?.email   ?? BIZ_EMAIL;
+  const address = settings?.address ?? BIZ_ADDRESS;
 
   return (
     <section
       id="contact"
       ref={containerRef as React.RefObject<HTMLElement>}
-      className="py-24 md:py-32 bg-[var(--color-surface)]"
+      className="bg-[var(--eu-surface-dark)] text-[var(--eu-on-dark)] relative"
     >
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-          {/* Left column */}
-          <div>
-            <SectionHeading headline={headline} subheadline={subheadline} />
+      {/* ── Dark CTA band ─────────────────────────────────── */}
+      <div className="max-w-[var(--eu-container-max)] mx-auto px-[var(--eu-container-gutter)] py-20">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-12 items-center pb-16 border-b border-white/10">
+          <div data-reveal>
+            <div className="inline-flex items-center gap-3 mb-4">
+              <span className="w-6 h-0.5 bg-[var(--eu-stripe-amber)]" />
+              <span className="text-[13px] font-bold tracking-[1.5px] uppercase text-[var(--eu-on-dark-soft)]">
+                Direkt sprechen
+              </span>
+            </div>
+            <h2 className="mt-4 text-4xl md:text-5xl font-bold text-[var(--eu-on-dark)] leading-tight max-w-[720px]">
+              {data?.headline ?? "Unsicher, in welche Spur Sie gehören?"}
+            </h2>
+            <p className="mt-4 text-[18px] text-[var(--eu-on-dark-soft)] leading-relaxed max-w-[560px]">
+              {data?.subheadline ??
+                "Rufen Sie an. Disposition antwortet innert 24 Std. — Mo–Fr 07:00–17:30, Sa morgens."}
+            </p>
+          </div>
 
-            <div data-reveal className="mt-10 space-y-6">
-              {settings?.email && (
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-sm bg-[var(--color-navy)]/10 text-[var(--color-navy)]">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold tracking-widest text-[var(--color-text-muted)] uppercase">Email</p>
-                    <a href={`mailto:${settings.email}`} className="text-[var(--color-navy)] hover:text-[var(--color-gold)] transition-colors font-medium">
-                      {settings.email}
-                    </a>
-                  </div>
-                </div>
-              )}
-              {settings?.phone && (
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-sm bg-[var(--color-navy)]/10 text-[var(--color-navy)]">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold tracking-widest text-[var(--color-text-muted)] uppercase">Phone</p>
-                    <a href={`tel:${settings.phone}`} className="text-[var(--color-navy)] hover:text-[var(--color-gold)] transition-colors font-medium">
-                      {settings.phone}
-                    </a>
-                  </div>
-                </div>
-              )}
-              {settings?.address && (
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-sm bg-[var(--color-navy)]/10 text-[var(--color-navy)]">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold tracking-widest text-[var(--color-text-muted)] uppercase">Address</p>
-                    <p className="text-[var(--color-navy)] font-medium whitespace-pre-line">{settings.address}</p>
-                  </div>
-                </div>
-              )}
+          {/* Quick-contact actions */}
+          <div data-reveal className="flex flex-col gap-3">
+            <a
+              href={BIZ_PHONE_HREF}
+              className="flex items-center justify-between h-16 px-7 bg-[var(--eu-recycle-green)] text-white border border-[var(--eu-recycle-green)] font-bold no-underline hover:bg-[var(--eu-recycle-green-active)] hover:border-[var(--eu-recycle-green-active)] transition-colors"
+            >
+              <span className="inline-flex items-center gap-3 text-[16px]">
+                <PhoneIcon />
+                {phone}
+              </span>
+              <span className="text-[11px] tracking-[1.5px] uppercase opacity-85">
+                Tap to call
+              </span>
+            </a>
+
+            <div className="grid grid-cols-2 gap-3">
+              <ContactPill icon={<MailIcon />} label={email} href={`mailto:${email}`} />
+              <ContactPill icon={<PinIcon />} label="Route planen" href="https://www.google.com/maps/search/?api=1&query=Ziegelei+1%2C+3672+Oberdiessbach" external />
+            </div>
+
+            <p className="text-[13px] text-[var(--eu-on-dark-soft)] tracking-[0.5px] mt-1">
+              {BIZ_HOURS}
+            </p>
+          </div>
+        </div>
+
+        {/* ── Contact form ──────────────────────────────────── */}
+        <div className="pt-16 grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+          {/* Left: address block */}
+          <div data-reveal className="flex flex-col gap-8">
+            <div>
+              <p className="text-[11px] font-bold tracking-[1.5px] uppercase text-[var(--eu-on-dark-soft)] mb-2">
+                Adresse
+              </p>
+              <p className="font-bold text-[18px] text-[var(--eu-on-dark)] whitespace-pre-line leading-snug">
+                {address}
+              </p>
+            </div>
+            <div>
+              <p className="text-[11px] font-bold tracking-[1.5px] uppercase text-[var(--eu-on-dark-soft)] mb-2">
+                Öffnungszeiten
+              </p>
+              <p className="font-bold text-[16px] text-[var(--eu-on-dark)]">{BIZ_HOURS}</p>
+            </div>
+            <div>
+              <p className="text-[11px] font-bold tracking-[1.5px] uppercase text-[var(--eu-on-dark-soft)] mb-2">
+                Steuernummer
+              </p>
+              <p className="font-bold text-[16px] text-[var(--eu-on-dark)] font-[family-name:var(--eu-font-mono)]">
+                CHE-432.118.077
+              </p>
             </div>
           </div>
 
-          {/* Contact form */}
-          <div data-reveal>
-            <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Right: contact form */}
+          <div data-reveal data-form-region>
+            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                  <label htmlFor="name" className="block text-xs font-semibold tracking-widest text-[var(--color-text-muted)] uppercase mb-2">
-                    Full Name *
-                  </label>
-                  <input
-                    id="name"
-                    name="name"
-                    type="text"
-                    required
-                    placeholder="Jane Smith"
-                    className="w-full px-4 py-3 bg-white border border-[var(--color-border)] rounded-sm text-[var(--color-navy)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-gold)] transition-colors"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="company" className="block text-xs font-semibold tracking-widest text-[var(--color-text-muted)] uppercase mb-2">
-                    Company
-                  </label>
-                  <input
-                    id="company"
-                    name="company"
-                    type="text"
-                    placeholder="Acme AG"
-                    className="w-full px-4 py-3 bg-white border border-[var(--color-border)] rounded-sm text-[var(--color-navy)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-gold)] transition-colors"
-                  />
-                </div>
+                <FormField id="name" label="Name *" type="text" placeholder="Max Muster" required />
+                <FormField id="company" label="Firma" type="text" placeholder="Garage AG" />
               </div>
-              <div>
-                <label htmlFor="email" className="block text-xs font-semibold tracking-widest text-[var(--color-text-muted)] uppercase mb-2">
-                  Email *
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  required
-                  placeholder="jane@example.com"
-                  className="w-full px-4 py-3 bg-white border border-[var(--color-border)] rounded-sm text-[var(--color-navy)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-gold)] transition-colors"
-                />
-              </div>
-              <div>
-                <label htmlFor="message" className="block text-xs font-semibold tracking-widest text-[var(--color-text-muted)] uppercase mb-2">
-                  Message *
+              <FormField id="email" label="E-Mail *" type="email" placeholder="max@example.com" required />
+              <FormField id="phone" label="Telefon" type="tel" placeholder="+41 76 …" />
+
+              <div className="flex flex-col gap-1.5">
+                <label
+                  htmlFor="message"
+                  className="text-[11px] font-bold tracking-[1.5px] uppercase text-[var(--eu-on-dark-soft)]"
+                >
+                  Nachricht *
                 </label>
                 <textarea
                   id="message"
                   name="message"
                   rows={5}
                   required
-                  placeholder="Tell us about your export needs..."
-                  className="w-full px-4 py-3 bg-white border border-[var(--color-border)] rounded-sm text-[var(--color-navy)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-gold)] transition-colors resize-none"
+                  placeholder="Schildern Sie Ihr Anliegen kurz…"
+                  className="w-full px-3.5 py-3 bg-transparent border border-white/25 text-[var(--eu-on-dark)] placeholder-[var(--eu-on-dark-soft)] font-[family-name:var(--eu-font-body)] text-[15px] leading-relaxed focus:outline-none focus:border-[var(--eu-recycle-green)] transition-colors resize-none"
                 />
               </div>
 
               {state === "success" && (
-                <p className="text-green-700 bg-green-50 border border-green-200 rounded-sm px-4 py-3 text-sm">
-                  Thank you! We&apos;ll be in touch shortly.
+                <p className="text-[var(--eu-recycle-green)] bg-[var(--eu-recycle-green-soft)] border border-[var(--eu-recycle-green)] px-4 py-3 text-[14px]">
+                  Danke! Wir melden uns in Kürze.
                 </p>
               )}
               {state === "error" && (
-                <p className="text-red-700 bg-red-50 border border-red-200 rounded-sm px-4 py-3 text-sm">
+                <p className="text-[var(--eu-error)] bg-red-950/40 border border-[var(--eu-error)] px-4 py-3 text-[14px]">
                   {errorMsg}
                 </p>
               )}
@@ -183,14 +175,101 @@ export function ContactSection({ data, settings }: ContactSectionProps) {
               <button
                 type="submit"
                 disabled={state === "loading"}
-                className="w-full py-4 px-8 font-semibold text-sm tracking-wide rounded-sm bg-[var(--color-navy)] text-white hover:bg-[var(--color-navy-light)] disabled:opacity-60 disabled:cursor-not-allowed transition-colors duration-200"
+                className="h-12 px-7 font-bold text-[13px] tracking-[0.5px] uppercase bg-[var(--eu-recycle-green)] text-white border border-[var(--eu-recycle-green)] hover:bg-[var(--eu-recycle-green-active)] hover:border-[var(--eu-recycle-green-active)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
               >
-                {state === "loading" ? "Sending…" : "Send Message"}
+                {state === "loading" ? "Wird gesendet…" : "Nachricht senden"}
               </button>
             </form>
           </div>
         </div>
       </div>
+
+      {/* Cargo stripe at bottom */}
+      <div className="eu-cargo-stripe" />
     </section>
+  );
+}
+
+/* -- Sub-components ------------------------------------------------------- */
+function FormField({
+  id,
+  label,
+  type,
+  placeholder,
+  required,
+}: {
+  id: string;
+  label: string;
+  type: string;
+  placeholder: string;
+  required?: boolean;
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label
+        htmlFor={id}
+        className="text-[11px] font-bold tracking-[1.5px] uppercase text-[var(--eu-on-dark-soft)]"
+      >
+        {label}
+      </label>
+      <input
+        id={id}
+        name={id}
+        type={type}
+        required={required}
+        placeholder={placeholder}
+        className="w-full px-3.5 py-3 bg-transparent border border-white/25 text-[var(--eu-on-dark)] placeholder-[var(--eu-on-dark-soft)] text-[15px] focus:outline-none focus:border-[var(--eu-recycle-green)] transition-colors"
+      />
+    </div>
+  );
+}
+
+function ContactPill({
+  icon,
+  label,
+  href,
+  external,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  href: string;
+  external?: boolean;
+}) {
+  return (
+    <a
+      href={href}
+      target={external ? "_blank" : undefined}
+      rel={external ? "noopener noreferrer" : undefined}
+      className="flex items-center gap-2.5 px-4 py-3 border border-white/25 text-[var(--eu-on-dark-soft)] text-[13px] no-underline hover:border-white/50 hover:text-[var(--eu-on-dark)] transition-colors truncate"
+    >
+      {icon}
+      <span className="truncate">{label}</span>
+    </a>
+  );
+}
+
+function PhoneIcon() {
+  return (
+    <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M22 16.92v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.1-8.6A2 2 0 0 1 4 2h3a2 2 0 0 1 2 1.7c.1.8.3 1.6.6 2.3a2 2 0 0 1-.4 2.1L8 9.4a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.7.3 1.5.5 2.3.6a2 2 0 0 1 1.7 2z" />
+    </svg>
+  );
+}
+
+function MailIcon() {
+  return (
+    <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="2" y="4" width="20" height="16" />
+      <path d="m2 6 10 7 10-7" />
+    </svg>
+  );
+}
+
+function PinIcon() {
+  return (
+    <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 22s7-7 7-12a7 7 0 1 0-14 0c0 5 7 12 7 12z" />
+      <circle cx="12" cy="10" r="3" />
+    </svg>
   );
 }

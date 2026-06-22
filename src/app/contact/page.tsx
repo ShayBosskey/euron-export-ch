@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
+import { groq } from "next-sanity";
+import { client } from "@/sanity/client";
+import { contactSectionQuery, siteSettingsQuery } from "@/sanity/queries";
+import type { ContactSection, SiteSettings } from "@/types/sanity";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { ContactSection as ContactSectionComponent } from "@/components/sections/ContactSection";
+
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Kontakt — Euron Export",
@@ -8,25 +15,31 @@ export const metadata: Metadata = {
     "Abholung anfordern oder Reifen bestellen. Kontaktieren Sie Euron Export in Oberdiessbach BE: Telefon, WhatsApp, E-Mail oder direkt vor Ort.",
 };
 
-export default function ContactPage() {
+interface ContactPageData {
+  contact: ContactSection | null;
+  settings: SiteSettings | null;
+}
+
+const contactPageQuery = groq`
+  {
+    "contact":  ${contactSectionQuery},
+    "settings": ${siteSettingsQuery},
+  }
+`;
+
+export default async function ContactPage() {
+  const data = await client.fetch<ContactPageData>(contactPageQuery).catch(() => null);
+
   return (
     <>
-      <Navbar siteName="Euron Export" />
-      <main className="min-h-screen flex items-center justify-center bg-[var(--eu-canvas)]">
-        <div className="text-center px-6 max-w-lg">
-          <p className="text-[11px] tracking-[2px] uppercase font-bold text-[var(--eu-recycle-green)] mb-4">
-            Kontakt
-          </p>
-          <h1 className="text-4xl font-bold text-[var(--eu-ink)] mb-4">
-            Abholung anfordern
-          </h1>
-          <p className="text-[var(--eu-muted)] leading-relaxed">
-            Dieser Bereich wird über das Sanity CMS verwaltet und im nächsten Sprint
-            mit Inhalten befüllt.
-          </p>
-        </div>
+      <Navbar siteName={data?.settings?.siteName ?? "Euron Export"} />
+      <main className="min-h-screen bg-[var(--eu-canvas)]">
+        <ContactSectionComponent
+          data={data?.contact ?? null}
+          settings={data?.settings ?? null}
+        />
       </main>
-      <Footer settings={null} />
+      <Footer settings={data?.settings ?? null} />
     </>
   );
 }
