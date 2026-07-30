@@ -11,9 +11,10 @@ import { toWaypoints, type PendingGarage } from "@/lib/routing"
 interface Props {
   garages: PendingGarage[]
   driverName: string
+  fetchError?: boolean
 }
 
-export default function DriverDashboard({ garages, driverName }: Props) {
+export default function DriverDashboard({ garages, driverName, fetchError = false }: Props) {
   const rootRef    = useRef<HTMLDivElement>(null)
   const headerRef  = useRef<HTMLElement>(null)
   const summaryRef = useRef<HTMLDivElement>(null)
@@ -124,7 +125,39 @@ export default function DriverDashboard({ garages, driverName }: Props) {
 
       {/* Garage list */}
       <div className="flex-1 px-4">
-        {garages.length === 0 ? (
+        {fetchError ? (
+          <div
+            className="rounded-2xl p-8 border text-center"
+            style={{
+              background: "var(--eu-surface-dark-elevated)",
+              borderColor: "rgba(200,51,31,0.25)",
+            }}
+          >
+            <div className="flex justify-center mb-3">
+              <svg
+                className="w-10 h-10"
+                style={{ color: "var(--eu-error)" }}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+                />
+              </svg>
+            </div>
+            <p className="font-semibold" style={{ color: "var(--eu-on-dark)" }}>
+              Couldn&apos;t reach the ERP system
+            </p>
+            <p className="text-sm mt-1" style={{ color: "var(--eu-muted)" }}>
+              Pickup data is unavailable right now — this is not the same as an empty route.
+              Try refreshing, or contact dispatch if the problem continues.
+            </p>
+          </div>
+        ) : garages.length === 0 ? (
           <div
             className="rounded-2xl p-8 border text-center"
             style={{

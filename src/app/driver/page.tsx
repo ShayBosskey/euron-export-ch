@@ -10,14 +10,19 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
-async function fetchPendingGarages(): Promise<PendingGarage[]> {
+interface PendingGaragesResult {
+  garages: PendingGarage[]
+  fetchError: boolean
+}
+
+async function fetchPendingGarages(): Promise<PendingGaragesResult> {
   const baseUrl   = process.env.ERPNEXT_BASE_URL
   const apiKey    = process.env.ERPNEXT_API_KEY
   const apiSecret = process.env.ERPNEXT_API_SECRET
 
   if (!baseUrl || !apiKey || !apiSecret) {
     console.error("[driver/page] ERPNext env vars not configured")
-    return []
+    return { garages: [], fetchError: true }
   }
 
   const fields  = JSON.stringify(["name", "garage_name", "address", "latitude", "longitude", "urgency", "request_date", "status"])
@@ -37,13 +42,13 @@ async function fetchPendingGarages(): Promise<PendingGarage[]> {
 
     if (!res.ok) {
       console.error("[driver/page] ERPNext responded:", res.status)
-      return []
+      return { garages: [], fetchError: true }
     }
 
     const json = await res.json()
     const rows = (json?.data ?? []) as Array<Record<string, unknown>>
 
-    return rows.map((row) => ({
+    const garages = rows.map((row) => ({
       id:          String(row.name ?? ""),
       garageName:  String(row.garage_name ?? ""),
       address:     row.address ? String(row.address) : undefined,
@@ -53,9 +58,11 @@ async function fetchPendingGarages(): Promise<PendingGarage[]> {
       requestDate: String(row.request_date ?? ""),
       status:      String(row.status ?? "Pending"),
     }))
+
+    return { garages, fetchError: false }
   } catch (err) {
     console.error("[driver/page] Failed to fetch garages:", err)
-    return []
+    return { garages: [], fetchError: true }
   }
 }
 
@@ -63,7 +70,7 @@ export default async function DriverPage() {
   const session = await getServerSession(authOptions)
   if (!session) redirect("/portal")
 
-  const garages = await fetchPendingGarages()
+  const { garages, fetchError } = await fetchPendingGarages()
 
   return (
     <main
@@ -72,6 +79,7 @@ export default async function DriverPage() {
     >
       <DriverDashboard
         garages={garages}
+        fetchError={fetchError}
         driverName={session.user?.name ?? "Driver"}
       />
     </main>
