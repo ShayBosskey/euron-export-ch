@@ -3,6 +3,7 @@ import "server-only"
 import type { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 
+import { AUTH_ERROR_CODES } from "./auth-errors"
 import { buildJwt, computeErpExpiry, SESSION_MAX_AGE_SECONDS, toClientSession } from "./auth-token"
 import { ErpError, isErpError } from "./erp/errors"
 import { erpLogin, erpLogout } from "./erp/login"
@@ -10,15 +11,8 @@ import { erpLogin, erpLogout } from "./erp/login"
 /** A fresh login must stay valid at least this long. */
 const MIN_SESSION_MS = 5 * 60_000
 
-/**
- * Error codes surfaced to the login form (`signIn(...).error`). Wrong credentials → NextAuth's own
- * "CredentialsSignin". Codes carry no detail an attacker could use.
- */
-export const AUTH_ERROR = {
-  noAppRole: "NoAppRole",
-  rateLimited: "RateLimited",
-  erpUnavailable: "ErpUnavailable",
-} as const
+/** Login error codes (see auth-errors.ts — shared with the client login form). */
+export const AUTH_ERROR = AUTH_ERROR_CODES
 
 export const authOptions: NextAuthOptions = {
   providers: [

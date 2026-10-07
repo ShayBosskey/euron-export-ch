@@ -1,17 +1,17 @@
-import { redirect } from "next/navigation"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
-import DashboardClient from "@/components/portal/DashboardClient"
 import type { Metadata } from "next"
+
+import DashboardClient from "@/components/portal/DashboardClient"
+import { PORTAL_HOME } from "@/lib/access"
+import { requirePageAccess } from "@/lib/guards"
 
 export const metadata: Metadata = {
   title: "Dashboard | Garage Portal — Euron Export",
   robots: { index: false, follow: false },
 }
 
+/** FE-02 — Garage Portal User / Euron Admin only (drivers are sent to /driver). */
 export default async function DashboardPage() {
-  const session = await getServerSession(authOptions)
-  if (!session || session.error) redirect("/portal")
+  const session = await requirePageAccess(PORTAL_HOME)
 
   return (
     <main
