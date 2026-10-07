@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions)
-  if (!session) redirect("/portal")
+  if (!session || session.error) redirect("/portal")
 
   return (
     <main

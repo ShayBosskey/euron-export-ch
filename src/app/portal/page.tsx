@@ -10,9 +10,16 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
-export default async function PortalPage() {
+export default async function PortalPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string | string[] }>
+}) {
   const session = await getServerSession(authOptions)
-  if (session) redirect("/portal/dashboard")
+  const { error } = await searchParams
+  // Stay on the login page when the ERP session is gone — either flagged in the JWT, or detected by
+  // the ERP itself (ERP_REAUTH_REDIRECT). Redirecting to the dashboard here would loop.
+  if (session && !session.error && error !== "SessionExpired") redirect("/portal/dashboard")
 
   return (
     <main

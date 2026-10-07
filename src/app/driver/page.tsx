@@ -68,7 +68,7 @@ async function fetchPendingGarages(): Promise<PendingGaragesResult> {
 
 export default async function DriverPage() {
   const session = await getServerSession(authOptions)
-  if (!session) redirect("/portal")
+  if (!session || session.error) redirect("/portal")
 
   const { garages, fetchError } = await fetchPendingGarages()
 
