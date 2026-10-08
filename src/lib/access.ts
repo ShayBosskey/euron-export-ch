@@ -55,6 +55,15 @@ export function canAccess(roles: unknown, pathname: string): boolean {
   return ROUTE_ROLES[route].some((role) => held.includes(role))
 }
 
+/**
+ * Pure decision behind `authorizeAction` (guards.ts): may a session holding `roles` run an action
+ * restricted to `allowed`? Unknown role strings never count.
+ */
+export function rolesAllow(roles: unknown, allowed: readonly AppRole[]): boolean {
+  const held = normalizeRoles(roles)
+  return allowed.some((role) => held.includes(role))
+}
+
 /** Landing page for a user, or `null` if they hold no app role (they belong on the login page). */
 export function homeFor(roles: unknown): ProtectedRoute | null {
   const held = normalizeRoles(roles)

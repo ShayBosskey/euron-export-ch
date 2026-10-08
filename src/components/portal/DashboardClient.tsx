@@ -5,23 +5,35 @@ import { signOut } from "next-auth/react"
 import { useGSAP } from "@gsap/react"
 import gsap from "gsap"
 import TirePickupButton from "./TirePickupButton"
+import { formatSwissDate, type PortalGarage } from "@/lib/portal-data"
 
 interface Props {
   userName: string
   userEmail: string
+  /** The user's own garages (ERP `portal.get_my_garages`); empty on error or for admins. */
+  garages: PortalGarage[]
+  /** The garage list could not be loaded — show a fallback, never "no garages". */
+  loadError: boolean
+  /** Only Garage Portal Users file pickups (admins view the dashboard read-only, A9). */
+  canRequestPickup: boolean
 }
 
-const STAT_CARDS = [
-  { label: "Pending Pickups", note: "Live data — Sprint 5" },
-  { label: "Completed", note: "Live data — Sprint 5" },
-  { label: "Total Requests", note: "Live data — Sprint 5" },
-]
+const cardStyle = {
+  background: "var(--eu-surface-dark-elevated)",
+  borderColor: "rgba(255,255,255,0.07)",
+}
 
-export default function DashboardClient({ userName, userEmail }: Props) {
+export default function DashboardClient({ userName, userEmail, garages, loadError, canRequestPickup }: Props) {
+  const activePickups = garages.filter((g) => g.pickup).length
+  const stats = [
+    { label: "Your garages", value: loadError ? "—" : String(garages.length) },
+    { label: "Active pickup requests", value: loadError ? "—" : String(activePickups) },
+  ]
+
   const rootRef = useRef<HTMLDivElement>(null)
   const headerRef = useRef<HTMLDivElement>(null)
   const cardsRef = useRef<HTMLDivElement>(null)
-  const ctaRef = useRef<HTMLDivElement>(null)
+  const ctaRef = useRef<HTMLElement>(null)
 
   useGSAP(
     () => {
@@ -103,85 +115,77 @@ export default function DashboardClient({ userName, userEmail }: Props) {
         </div>
       </header>
 
-      {/* Stat cards */}
-      <div ref={cardsRef} className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        {STAT_CARDS.map((card) => (
-          <div
-            key={card.label}
-            className="rounded-xl p-5 border"
-            style={{
-              background: "var(--eu-surface-dark-elevated)",
-              borderColor: "rgba(255,255,255,0.07)",
-            }}
-          >
-            <p
-              className="text-3xl font-bold mb-1"
-              style={{ color: "var(--eu-on-dark)" }}
-            >
-              —
+      {/* Stat cards (live from the ERP) */}
+      <div ref={cardsRef} className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+        {stats.map((card) => (
+          <div key={card.label} className="rounded-xl p-5 border" style={cardStyle}>
+            <p className="text-3xl font-bold mb-1" style={{ color: "var(--eu-on-dark)" }}>
+              {card.value}
             </p>
             <p className="text-sm font-medium" style={{ color: "var(--eu-on-dark-soft)" }}>
               {card.label}
-            </p>
-            <p className="text-xs mt-1" style={{ color: "var(--eu-muted)" }}>
-              {card.note}
             </p>
           </div>
         ))}
       </div>
 
-      {/* Tire Pickup CTA */}
-      <div
-        ref={ctaRef}
-        className="rounded-2xl p-8 border"
-        style={{
-          background: "var(--eu-surface-dark-elevated)",
-          borderColor: "rgba(255,255,255,0.07)",
-        }}
-      >
-        <div className="flex items-start gap-5">
-          {/* Icon badge */}
-          <div
-            className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{
-              background: "rgba(15,122,63,0.12)",
-              border: "1px solid rgba(15,122,63,0.25)",
-            }}
-          >
-            <svg
-              className="w-6 h-6"
-              style={{ color: "var(--eu-recycle-green)" }}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
-              />
-            </svg>
-          </div>
+      {/* Tire pickup — one card per garage of this user */}
+      <section ref={ctaRef} aria-labelledby="pickup-heading" className="space-y-4">
+        <h2 id="pickup-heading" className="text-lg font-bold" style={{ color: "var(--eu-on-dark)" }}>
+          Request Tire Pickup
+        </h2>
 
-          <div className="flex-1 min-w-0">
-            <h2
-              className="text-lg font-bold mb-1"
-              style={{ color: "var(--eu-on-dark)" }}
-            >
-              Request Tire Pickup
-            </h2>
-            <p
-              className="text-sm mb-6 leading-relaxed"
-              style={{ color: "var(--eu-on-dark-soft)" }}
-            >
-              Schedule a collection of used tires from your garage. Our logistics team will
-              confirm a pickup window within 24 business hours.
+        {loadError ? (
+          <div role="alert" className="rounded-2xl p-6 border" style={{ ...cardStyle, borderColor: "rgba(200,51,31,0.25)" }}>
+            <p className="font-semibold" style={{ color: "var(--eu-on-dark)" }}>
+              Your garages couldn&apos;t be loaded
             </p>
-            <TirePickupButton />
+            <p className="text-sm mt-1" style={{ color: "var(--eu-muted)" }}>
+              The ERP system is not reachable right now. Please refresh in a few minutes.
+            </p>
           </div>
-        </div>
-      </div>
+        ) : garages.length === 0 ? (
+          <div className="rounded-2xl p-6 border" style={cardStyle}>
+            <p className="font-semibold" style={{ color: "var(--eu-on-dark)" }}>
+              No active garage is linked to this account
+            </p>
+            <p className="text-sm mt-1" style={{ color: "var(--eu-muted)" }}>
+              {canRequestPickup
+                ? "Please contact Euron Export so we can link your garage."
+                : "Pickups are requested by garage accounts."}
+            </p>
+          </div>
+        ) : (
+          garages.map((garage) => {
+            const until = formatSwissDate(garage.pickup?.validUntil ?? null)
+            const location = [garage.postalCode, garage.city].filter(Boolean).join(" ")
+            return (
+              <article key={garage.id} className="rounded-2xl p-6 border" style={cardStyle}>
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                  <div className="min-w-0">
+                    <h3 className="font-semibold" style={{ color: "var(--eu-on-dark)" }}>
+                      {garage.name}
+                    </h3>
+                    {location && (
+                      <p className="text-sm" style={{ color: "var(--eu-muted)" }}>
+                        {location}
+                      </p>
+                    )}
+                    <p className="text-sm mt-2" style={{ color: "var(--eu-on-dark-soft)" }}>
+                      {garage.pickup
+                        ? `Pickup requested${until ? ` — valid until ${until}` : ""}. Our team will schedule the collection.`
+                        : "No pickup requested."}
+                    </p>
+                  </div>
+                  {canRequestPickup && !garage.pickup && (
+                    <TirePickupButton garageId={garage.id} garageName={garage.name} />
+                  )}
+                </div>
+              </article>
+            )
+          })
+        )}
+      </section>
     </div>
   )
 }
