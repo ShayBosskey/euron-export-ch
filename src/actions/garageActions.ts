@@ -1,9 +1,10 @@
 "use server"
 
 import { authorizeAction } from "@/lib/guards"
-import { PICKUP_MESSAGES, PICKUP_ROLES, requestPickup, type PickupResult } from "@/lib/pickup"
+import { PICKUP_MESSAGES, PICKUP_ROLES, requestPickup } from "@/lib/pickup"
+import type { PickupResult } from "@/lib/portal-data"
 
-export type { PickupResult }
+// Only async functions may be exported from a "use server" module (pinned by tests/server-actions.test.ts).
 
 /**
  * FE-01 — server action behind the "Request Tire Pickup" button.

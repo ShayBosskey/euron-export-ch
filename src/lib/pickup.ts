@@ -4,11 +4,15 @@ import { erpCall } from "./erp/client"
 import { GARAGE_PORTAL_USER, type AppRole } from "./erp/roles"
 import { isErpError, isReauthRequired } from "./erp/errors"
 import type { ErpCallOptions } from "./erp/http"
-import { formatSwissDate, fromPickupResponse, parseGarageId, REQUEST_PICKUP_METHOD } from "./portal-data"
+import {
+  formatSwissDate,
+  fromPickupResponse,
+  parseGarageId,
+  REQUEST_PICKUP_METHOD,
+  type PickupResult,
+} from "./portal-data"
 
-export type PickupResult =
-  | { success: true; message: string; requestId: string; created: boolean }
-  | { success: false; message: string; reauth?: true }
+export type { PickupResult }
 
 type Caller = <T>(method: string, options?: ErpCallOptions) => Promise<T>
 

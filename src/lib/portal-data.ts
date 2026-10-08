@@ -75,6 +75,15 @@ export function fromMyGarages(payload: unknown): PortalGarage[] | null {
   return garages
 }
 
+/**
+ * Result of the pickup server action. Declared here (pure module) rather than in the action file:
+ * a "use server" module may only export async functions — a re-exported type there becomes a
+ * runtime reference and crashes the action module ("PickupResult is not defined").
+ */
+export type PickupResult =
+  | { success: true; message: string; requestId: string; created: boolean }
+  | { success: false; message: string; reauth?: true }
+
 export interface PickupConfirmation {
   requestId: string
   garageId: string

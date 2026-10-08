@@ -4,8 +4,9 @@ import { useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import gsap from "gsap"
 
-import { requestTirePickup, type PickupResult } from "@/actions/garageActions"
+import { requestTirePickup } from "@/actions/garageActions"
 import { ERP_REAUTH_REDIRECT } from "@/lib/erp/errors"
+import type { PickupResult } from "@/lib/portal-data"
 
 type Status = "idle" | "loading" | "success" | "error"
 
