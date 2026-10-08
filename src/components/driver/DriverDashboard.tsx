@@ -1,12 +1,17 @@
 "use client"
 
-import { useRef } from "react"
+import { useRef, useState } from "react"
+import { useRouter } from "next/navigation"
 import { signOut } from "next-auth/react"
 import { useGSAP } from "@gsap/react"
 import gsap from "gsap"
+import CollectionLogForm from "./CollectionLogForm"
 import GarageCard from "./GarageCard"
 import RouteButton from "./RouteButton"
+import { newClientUuid, type CollectionResult } from "@/lib/collection-data"
 import { toWaypoints, type PendingGarage } from "@/lib/routing"
+
+type Notice = { tone: "success" | "warning"; text: string }
 
 export type DriverFetchError = "unavailable" | "forbidden"
 
@@ -26,9 +31,35 @@ interface Props {
   driverName: string
   /** null = data loaded; otherwise why the route list is missing. */
   fetchError?: DriverFetchError | null
+  /** A9 — Euron Driver only (LOG_ROLES); admins see the route but log in Desk. */
+  canLogCollection?: boolean
 }
 
-export default function DriverDashboard({ garages, driverName, fetchError = null }: Props) {
+export default function DriverDashboard({ garages, driverName, fetchError = null, canLogCollection = false }: Props) {
+  const router = useRouter()
+  const [openGarageId, setOpenGarageId] = useState<string | null>(null)
+  // One idempotency key per garage, replaced only after a confirmed save: closing and reopening the
+  // form after a lost answer resends the same key, so a retry can never create a second log.
+  const [entryKeys, setEntryKeys] = useState<Record<string, string>>({})
+  // Shown above the list, not in the card: after a save the garage is re-ranked and may leave the list.
+  const [notice, setNotice] = useState<Notice | null>(null)
+
+  const keyFor = (garageId: string) => entryKeys[garageId] ?? ""
+
+  const openForm = (garageId: string) => {
+    setNotice(null)
+    setEntryKeys((keys) => (keys[garageId] ? keys : { ...keys, [garageId]: newClientUuid() }))
+    setOpenGarageId(garageId)
+  }
+
+  const handleSaved = (garageId: string, result: Extract<CollectionResult, { success: true }>) => {
+    setOpenGarageId(null)
+    setEntryKeys(({ [garageId]: _used, ...rest }) => rest)
+    setNotice({ tone: result.mismatch ? "warning" : "success", text: result.message })
+    // Reload the route: the ERP completed the pickup request and re-ranked the garage.
+    router.refresh()
+  }
+
   const rootRef    = useRef<HTMLDivElement>(null)
   const headerRef  = useRef<HTMLElement>(null)
   const summaryRef = useRef<HTMLDivElement>(null)
@@ -139,6 +170,29 @@ export default function DriverDashboard({ garages, driverName, fetchError = null
 
       {/* Garage list */}
       <div className="flex-1 px-4">
+        {notice && (
+          <div
+            role="status"
+            className="rounded-2xl p-4 border mb-3 flex items-start justify-between gap-3"
+            style={{
+              background: "var(--eu-surface-dark-elevated)",
+              borderColor: notice.tone === "success" ? "rgba(39,160,90,0.35)" : "rgba(232,148,58,0.45)",
+            }}
+          >
+            <p className="text-sm" style={{ color: notice.tone === "success" ? "var(--eu-success)" : "#e8943a" }}>
+              {notice.text}
+            </p>
+            <button
+              type="button"
+              onClick={() => setNotice(null)}
+              aria-label="Dismiss"
+              className="text-xs flex-shrink-0"
+              style={{ color: "var(--eu-on-dark-soft)" }}
+            >
+              ✕
+            </button>
+          </div>
+        )}
         {fetchError ? (
           <div
             className="rounded-2xl p-8 border text-center"
@@ -204,7 +258,28 @@ export default function DriverDashboard({ garages, driverName, fetchError = null
         ) : (
           <div ref={listRef} className="space-y-3 pb-4">
             {garages.map((garage, i) => (
-              <GarageCard key={garage.id || i} garage={garage} rank={i + 1} />
+              <div key={garage.id || i} className="space-y-2">
+                <GarageCard garage={garage} rank={i + 1} />
+                {canLogCollection && garage.id && keyFor(garage.id) && openGarageId === garage.id ? (
+                  <CollectionLogForm
+                    garageId={garage.id}
+                    garageName={garage.garageName}
+                    clientUuid={keyFor(garage.id)}
+                    onSaved={(result) => handleSaved(garage.id, result)}
+                    onCancel={() => setOpenGarageId(null)}
+                  />
+                ) : canLogCollection && garage.id ? (
+                  <button
+                    type="button"
+                    onClick={() => openForm(garage.id)}
+                    aria-label={`Log collection at ${garage.garageName}`}
+                    className="w-full rounded-xl px-4 py-2.5 text-sm font-semibold border"
+                    style={{ borderColor: "rgba(39,160,90,0.35)", color: "var(--eu-recycle-green)" }}
+                  >
+                    Log collection
+                  </button>
+                ) : null}
+              </div>
             ))}
           </div>
         )}
