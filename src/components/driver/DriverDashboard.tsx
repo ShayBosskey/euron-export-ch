@@ -8,13 +8,27 @@ import GarageCard from "./GarageCard"
 import RouteButton from "./RouteButton"
 import { toWaypoints, type PendingGarage } from "@/lib/routing"
 
+export type DriverFetchError = "unavailable" | "forbidden"
+
+const FETCH_ERROR_TEXT: Record<DriverFetchError, { title: string; body: string }> = {
+  unavailable: {
+    title: "Couldn't reach the ERP system",
+    body: "Pickup data is unavailable right now — this is not the same as an empty route. Try refreshing, or contact dispatch if the problem continues.",
+  },
+  forbidden: {
+    title: "No access to the route list",
+    body: "Your account is not allowed to load driver routes. Sign out and in again; if this persists, contact dispatch.",
+  },
+}
+
 interface Props {
   garages: PendingGarage[]
   driverName: string
-  fetchError?: boolean
+  /** null = data loaded; otherwise why the route list is missing. */
+  fetchError?: DriverFetchError | null
 }
 
-export default function DriverDashboard({ garages, driverName, fetchError = false }: Props) {
+export default function DriverDashboard({ garages, driverName, fetchError = null }: Props) {
   const rootRef    = useRef<HTMLDivElement>(null)
   const headerRef  = useRef<HTMLElement>(null)
   const summaryRef = useRef<HTMLDivElement>(null)
@@ -150,11 +164,10 @@ export default function DriverDashboard({ garages, driverName, fetchError = fals
               </svg>
             </div>
             <p className="font-semibold" style={{ color: "var(--eu-on-dark)" }}>
-              Couldn&apos;t reach the ERP system
+              {FETCH_ERROR_TEXT[fetchError].title}
             </p>
             <p className="text-sm mt-1" style={{ color: "var(--eu-muted)" }}>
-              Pickup data is unavailable right now — this is not the same as an empty route.
-              Try refreshing, or contact dispatch if the problem continues.
+              {FETCH_ERROR_TEXT[fetchError].body}
             </p>
           </div>
         ) : garages.length === 0 ? (
@@ -185,7 +198,7 @@ export default function DriverDashboard({ garages, driverName, fetchError = fals
               All clear
             </p>
             <p className="text-sm mt-1" style={{ color: "var(--eu-muted)" }}>
-              No pending pickups today.
+              No garages need a pickup right now.
             </p>
           </div>
         ) : (

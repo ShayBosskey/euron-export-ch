@@ -2,20 +2,38 @@
 
 import { useRef, useState } from "react"
 import { signIn } from "next-auth/react"
-import { useRouter } from "next/navigation"
 import { useGSAP } from "@gsap/react"
 import gsap from "gsap"
 
-export default function LoginForm() {
+import { LOGIN_PATH, safeCallbackPath } from "@/lib/access"
+import { loginErrorMessage } from "@/lib/login-messages"
+
+interface Props {
+  /** Fixed-text notice from /portal?error=… (e.g. session expired); never raw URL content. */
+  notice?: string | null
+  /** Untrusted callbackUrl from the URL; re-validated here and again on the server. */
+  callbackUrl?: string | null
+}
+
+/**
+ * After a successful sign-in, hand over to the /portal server page: it knows the roles from the
+ * session and redirects to the callbackUrl (if allowed) or to the role's home (D12). A full
+ * navigation guarantees the fresh session cookie is used for that server render.
+ */
+function postLoginUrl(callbackUrl: string | null | undefined): string {
+  const safe = safeCallbackPath(callbackUrl)
+  return safe ? `${LOGIN_PATH}?callbackUrl=${encodeURIComponent(safe)}` : LOGIN_PATH
+}
+
+export default function LoginForm({ notice = null, callbackUrl = null }: Props) {
   const rootRef = useRef<HTMLDivElement>(null)
   const logoRef = useRef<HTMLDivElement>(null)
   const cardRef = useRef<HTMLDivElement>(null)
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
+  const [error, setError] = useState(notice ?? "")
   const [loading, setLoading] = useState(false)
-  const router = useRouter()
 
   useGSAP(
     () => {
@@ -49,21 +67,26 @@ export default function LoginForm() {
     setError("")
     setLoading(true)
 
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    })
-
-    setLoading(false)
-
-    if (result?.error) {
-      setError("Invalid email or password. Please try again.")
-      shakeCard()
-    } else {
-      router.push("/portal/dashboard")
-      router.refresh()
+    let result: Awaited<ReturnType<typeof signIn>>
+    try {
+      result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      })
+    } catch {
+      result = undefined
     }
+
+    if (!result || result.error || !result.ok) {
+      setLoading(false)
+      setError(loginErrorMessage(result?.error ?? "ErpUnavailable"))
+      shakeCard()
+      return
+    }
+
+    // Keep the spinner during the navigation; the server page picks the destination.
+    window.location.replace(postLoginUrl(callbackUrl))
   }
 
   return (

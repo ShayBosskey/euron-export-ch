@@ -1,7 +1,7 @@
 "use server"
 
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
+import { GARAGE_PORTAL_USER } from "@/lib/erp/roles"
+import { authorizeAction } from "@/lib/guards"
 
 export type PickupResult = {
   success: boolean
@@ -9,10 +9,23 @@ export type PickupResult = {
   requestId?: string
 }
 
+// TODO(FE-01): replace the integration-key call below with erpCall("…portal.request_my_pickup").
 export async function requestTirePickup(): Promise<PickupResult> {
-  const session = await getServerSession(authOptions)
+  // FE-02: a server action is reachable by POST from any route, Proxy or not — check the role here.
+  // Garage Portal User only: admins may view the dashboard (D12) but not file pickups as a garage.
+  const auth = await authorizeAction([GARAGE_PORTAL_USER])
+  if (!auth.ok) {
+    return {
+      success: false,
+      message:
+        auth.reason === "forbidden"
+          ? "Your account cannot request pickups."
+          : "Unauthorized. Please sign in again.",
+    }
+  }
+  const { session } = auth
 
-  if (!session?.user?.email) {
+  if (!session.user?.email) {
     return { success: false, message: "Unauthorized. Please sign in again." }
   }
 

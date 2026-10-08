@@ -5,10 +5,11 @@
  * Frappe `sid` + CSRF token. The NextAuth *session* object is served as JSON to client JavaScript
  * by /api/auth/session — it must NEVER contain them. Only `toClientSession` decides what it holds.
  *
- * No `server-only` import: middleware (edge) uses `isTokenUsable`.
+ * No `server-only` import: `proxy.ts` uses `isTokenUsable`.
  */
 import type { Session, User } from "next-auth"
 import type { JWT } from "next-auth/jwt"
+import { normalizeRoles } from "./access"
 import type { AppRole } from "./erp/roles"
 
 /** NextAuth session + JWT lifetime. The ERP part may expire earlier (see computeErpExpiry). */
@@ -68,7 +69,7 @@ export function erpCredentialsAlive(token: JWT | null | undefined, now: number =
 
 /** Middleware gate: a token is usable only with live ERP credentials and at least one app role. */
 export function isTokenUsable(token: JWT | null | undefined, now: number = Date.now()): boolean {
-  return Boolean(token && !token.error && erpCredentialsAlive(token, now) && Array.isArray(token.roles) && token.roles.length > 0)
+  return Boolean(token && !token.error && erpCredentialsAlive(token, now) && normalizeRoles(token.roles).length > 0)
 }
 
 export function hasRole(roles: readonly string[] | undefined, role: AppRole): boolean {

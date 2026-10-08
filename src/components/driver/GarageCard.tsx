@@ -54,9 +54,9 @@ export default function GarageCard({ garage, rank }: Props) {
         )}
 
         <div className="flex items-center gap-3 mt-2">
-          {garage.requestDate && (
-            <span className="text-xs" style={{ color: "var(--eu-muted)" }}>
-              {garage.requestDate}
+          {garage.pickupRequested && (
+            <span className="text-xs font-medium" style={{ color: "var(--eu-on-dark-soft)" }}>
+              Pickup requested
             </span>
           )}
           {hasGps ? (
