@@ -4,7 +4,7 @@ import type { Session } from "next-auth"
 import { getServerSession } from "next-auth"
 import { redirect } from "next/navigation"
 
-import { canAccess, homeFor, LOGIN_PATH, normalizeRoles, type ProtectedRoute } from "./access"
+import { canAccess, homeFor, LOGIN_PATH, rolesAllow, type ProtectedRoute } from "./access"
 import { authOptions } from "./auth"
 import { ERP_REAUTH_REDIRECT } from "./erp/errors"
 import type { AppRole } from "./erp/roles"
@@ -44,7 +44,6 @@ export async function authorizeAction(allowed: readonly AppRole[]): Promise<Acti
     return { ok: false, reason: "unauthenticated" }
   }
   if (!session || session.error) return { ok: false, reason: "unauthenticated" }
-  const held = normalizeRoles(session.roles)
-  if (!allowed.some((role) => held.includes(role))) return { ok: false, reason: "forbidden" }
+  if (!rolesAllow(session.roles, allowed)) return { ok: false, reason: "forbidden" }
   return { ok: true, session }
 }
